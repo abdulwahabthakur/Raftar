@@ -1,0 +1,244 @@
+{
+  "main": {
+    "id": "727d0b15c83f5fd5",
+    "type": "split",
+    "children": [
+      {
+        "id": "e06d6d0340e6ed10",
+        "type": "tabs",
+        "dimension": 29.32551319648094,
+        "children": [
+          {
+            "id": "b3ea0944e44477cb",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Streak System.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Streak System"
+            }
+          }
+        ]
+      },
+      {
+        "id": "f772dd1dfd6c6d7f",
+        "type": "tabs",
+        "dimension": 70.67448680351906,
+        "children": [
+          {
+            "id": "e82f0218662e75b1",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "667af57e70f7c1de",
+    "type": "split",
+    "children": [
+      {
+        "id": "0812445761efa230",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "0c84c2cd4d133ad4",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "2ee04866667fedd7",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "02580fca89611e82",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "d497699dde5e360c",
+    "type": "split",
+    "children": [
+      {
+        "id": "ab9d775d19c90e66",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d8b1212322f7b065",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Streak System.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "8cd89f4a6b4184ba",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Streak System.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "0a7e09b75db2e50c",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "d63bd6ab26b6dd1e",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "dc09a3b822d56471",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Streak System.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "b3ea0944e44477cb",
+  "lastOpenFiles": [
+    "screen_resized.png",
+    "screen_adb.png",
+    "screen_small.png",
+    "screen.png",
+    "screenshot22_raw.png",
+    "screenshot21.png",
+    "screenshot20.png",
+    "screenshot19.png",
+    "screenshot18.png",
+    "Security & RLS.md",
+    "screenshot17.png",
+    "screenshot15.png",
+    "Welcome.md",
+    "Progress Log.md",
+    "Environment & Setup.md",
+    "Streak System.md",
+    "Presence System.md",
+    "Leaderboard System.md",
+    "Cron Jobs.md",
+    "Anti-Cheat System.md",
+    "Edge Functions.md",
+    "Database Migrations.md",
+    "Data Types.md",
+    "Capture Flow.md",
+    "Run Engine.md",
+    "Map Components.md",
+    "Screens.md",
+    "Constants & Key Numbers.md",
+    "Hard Rules.md",
+    "Architecture.md",
+    "Project Overview.md",
+    "Home.md"
+  ]
+}

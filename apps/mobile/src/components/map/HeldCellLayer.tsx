@@ -1,5 +1,5 @@
 import React from 'react';
-import MapboxGL from '@rnmapbox/maps';
+import MapboxGL from '@maplibre/maplibre-react-native';
 import { TerritoryCell } from '@/types';
 import { getCellStatus } from '@/features/territory/captureService';
 import { colors } from '@/lib/theme';

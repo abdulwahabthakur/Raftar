@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated } from 'react-native';
-import MapboxGL from '@rnmapbox/maps';
+import MapboxGL from '@maplibre/maplibre-react-native';
 
 interface Props {
   lat: number;

@@ -18,7 +18,7 @@ export const EndRunSchema = z.object({
   distanceMeters: z.number().min(0),
   route: z.object({
     type: z.literal('LineString'),
-    coordinates: z.array(z.tuple([z.number(), z.number()])).min(2),
+    coordinates: z.array(z.tuple([z.number(), z.number()])).min(0),
   }),
 });
 

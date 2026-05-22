@@ -47,19 +47,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         color: '#FF3B30',
       },
     ],
-    [
-      '@rnmapbox/maps',
-      {
-        RNMapboxMapsDownloadToken: process.env.MAPBOX_DOWNLOAD_TOKEN ?? '',
-      },
-    ],
+    '@maplibre/maplibre-react-native',
   ],
   extra: {
     supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
     mapboxToken: process.env.EXPO_PUBLIC_MAPBOX_TOKEN,
     eas: {
-      projectId: 'YOUR_EAS_PROJECT_ID',
+      projectId: 'f3e3a02d-072e-4a6d-9acf-c7a0467f3d4f',
     },
   },
   scheme: 'raftar',

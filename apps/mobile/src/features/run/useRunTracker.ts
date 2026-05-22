@@ -38,7 +38,7 @@ export function useRunTracker(isActive: boolean) {
     let mounted = true;
 
     async function startTracking() {
-      const { status } = await Location.getForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted' || !mounted) return;
 
       subscriptionRef.current = await Location.watchPositionAsync(

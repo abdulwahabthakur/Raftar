@@ -1,5 +1,5 @@
 import React from 'react';
-import MapboxGL from '@rnmapbox/maps';
+import MapboxGL from '@maplibre/maplibre-react-native';
 import { colors } from '@/lib/theme';
 
 interface Props {

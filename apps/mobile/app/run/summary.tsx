@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { colors, spacing, typography } from '@/lib/theme';
@@ -33,8 +33,14 @@ function StatRow({ label, value }: StatRowProps) {
 }
 
 export default function SummaryScreen() {
-  // Stats are passed via router params or fetched from last run
-  const params = router.useSearchParams?.() ?? {};
+  const params = useLocalSearchParams<{
+    distance: string;
+    duration: string;
+    cells: string;
+    skipped: string;
+    zones: string;
+  }>();
+
   const distance = Number(params.distance ?? 0);
   const duration = Number(params.duration ?? 0);
   const cellsCaptured = Number(params.cells ?? 0);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import { startRun } from '@/features/run/runService';
 import { colors, spacing, typography } from '@/lib/theme';
 
@@ -16,8 +16,10 @@ export function StartRunButton({ onStarted }: Props) {
     try {
       await startRun();
       onStarted?.();
-    } catch (e) {
-      console.error('Failed to start run', e);
+    } catch (e: any) {
+      const msg = e?.message ?? String(e);
+      console.error('Failed to start run', msg);
+      Alert.alert('Could not start run', msg);
     } finally {
       setLoading(false);
     }

@@ -33,12 +33,19 @@ export default function ActiveRunScreen() {
 
   useRunTracker(activeRun?.isActive ?? false);
 
-  // Start presence broadcast when run is active
+  // Start presence broadcast when run is active.
+  // Callbacks use getState() so they always read the latest store values,
+  // not the stale closure values from when the effect first ran.
   useEffect(() => {
     if (!activeRun) return;
     startPresenceBroadcast(
-      () => lastPosition,
-      () => cells.filter((c) => c.ownerId === userId && c.heldUntil !== null).map((c) => c.id),
+      () => useRunStore.getState().lastPosition,
+      () => {
+        const allCells = Array.from(useTerritoryStore.getState().cells.values());
+        return allCells
+          .filter((c) => c.ownerId === userId && c.heldUntil !== null)
+          .map((c) => c.id);
+      },
     );
     return () => stopPresenceBroadcast();
   }, [activeRun?.id]);
@@ -75,7 +82,7 @@ export default function ActiveRunScreen() {
 
   return (
     <View style={styles.root}>
-      <TerritoryMap />
+      <TerritoryMap followUser />
       <CaptureFlash visible={captureFlashVisible} />
       <HeldCellSkip />
       <SafeAreaView style={styles.hudContainer} edges={['top']}>

@@ -29,7 +29,10 @@ export async function startRun(): Promise<StartRunResponse> {
   });
 
   if (!res.ok) {
-    const err = await res.json();
+    const text = await res.text();
+    console.error('[startRun] HTTP', res.status, text);
+    let err: any = {};
+    try { err = JSON.parse(text); } catch {}
     throw new Error(err.error ?? 'Failed to start run');
   }
 

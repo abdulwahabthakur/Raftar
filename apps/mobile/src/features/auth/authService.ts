@@ -5,14 +5,16 @@ import { UserProfile } from '@/types';
 export async function initAuth(): Promise<void> {
   const { setSession, setProfile, setLoading } = useAuthStore.getState();
 
-  const { data: { session } } = await supabase.auth.getSession();
-  setSession(session);
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    setSession(session);
 
-  if (session?.user) {
-    await loadProfile(session.user.id);
+    if (session?.user) {
+      await loadProfile(session.user.id);
+    }
+  } finally {
+    setLoading(false);
   }
-
-  setLoading(false);
 
   supabase.auth.onAuthStateChange(async (_event, newSession) => {
     setSession(newSession);

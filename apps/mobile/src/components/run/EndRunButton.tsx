@@ -24,8 +24,18 @@ export function EndRunButton() {
           try {
             stopPresenceBroadcast();
             resetRunCells();
+            const durationSeconds = Math.round((Date.now() - activeRun.startedAt) / 1000);
             await endRun(activeRun.id, activeRun.distanceMeters);
-            router.replace('/run/summary');
+            router.replace({
+              pathname: '/run/summary',
+              params: {
+                distance: Math.round(activeRun.distanceMeters),
+                duration: durationSeconds,
+                cells: activeRun.cellsCaptured,
+                skipped: activeRun.cellsSkipped,
+                zones: activeRun.zonesCaptured,
+              },
+            });
           } catch (e) {
             console.error('Failed to end run', e);
             setLoading(false);

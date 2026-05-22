@@ -8,17 +8,18 @@ const EndRunSchema = z.object({
   distanceMeters: z.number().min(0),
   route: z.object({
     type: z.literal('LineString'),
-    coordinates: z.array(z.tuple([z.number(), z.number()])).min(2),
+    coordinates: z.array(z.tuple([z.number(), z.number()])).min(0),
   }),
 });
 
 const r = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
   });
 
 serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, content-type' } });
   if (req.method !== 'POST') return r({ error: 'Method not allowed' }, 405);
 
   const authHeader = req.headers.get('Authorization');
@@ -40,7 +41,6 @@ serve(async (req: Request) => {
 
   const { runId, endedAt, distanceMeters, route } = parsed.data;
 
-  // Verify this run belongs to the user and is still active
   const { data: run, error: findErr } = await supabase
     .from('runs')
     .select('id, started_at, user_id')
@@ -55,8 +55,10 @@ serve(async (req: Request) => {
     (new Date(endedAt).getTime() - new Date(run.started_at).getTime()) / 1000,
   );
 
-  // Serialize route for PostGIS
-  const coordStr = route.coordinates.map(([lng, lat]) => `${lng} ${lat}`).join(',');
+  // Only write PostGIS LINESTRING if we have >= 2 GPS points
+  const routeUpdate = route.coordinates.length >= 2
+    ? { route: `SRID=4326;LINESTRING(${route.coordinates.map(([lng, lat]) => `${lng} ${lat}`).join(',')})` }
+    : {};
 
   const { data: updated, error: updateErr } = await supabase
     .from('runs')
@@ -64,25 +66,21 @@ serve(async (req: Request) => {
       ended_at: endedAt,
       distance_meters: distanceMeters,
       duration_seconds: durationSeconds,
-      route: `SRID=4326;LINESTRING(${coordStr})`,
+      ...routeUpdate,
     })
     .eq('id', runId)
     .select('id, user_id, started_at, ended_at, distance_meters, duration_seconds, cells_captured, cells_skipped, zones_captured')
     .single();
 
-  if (updateErr) return r({ error: 'Failed to end run' }, 500);
+  if (updateErr) return r({ error: `Failed to end run: ${updateErr.message}` }, 500);
 
-  // Atomic stat increments via SECURITY DEFINER functions — no race conditions
   await Promise.all([
-    supabase.rpc('update_streak', {
-      p_user_id: user.id,
-      p_run_date: endedAt.split('T')[0],
-    }),
-    supabase.rpc('increment_user_run_stats', {
-      p_user_id: user.id,
-      p_distance_meters: Math.round(distanceMeters),
-    }),
+    supabase.rpc('update_streak', { p_user_id: user.id, p_run_date: endedAt.split('T')[0] }),
+    supabase.rpc('increment_user_run_stats', { p_user_id: user.id, p_distance_meters: Math.round(distanceMeters) }),
   ]);
+
+  // Refresh leaderboard cache synchronously so rankings update immediately after a run
+  await supabase.rpc('refresh_leaderboard_cache').catch(() => null);
 
   return r({ run: updated });
 });

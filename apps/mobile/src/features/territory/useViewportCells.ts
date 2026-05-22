@@ -37,12 +37,11 @@ async function fetchCellsInBounds(bounds: Bounds): Promise<TerritoryCell[]> {
   }));
 }
 
-async function fetchZonesInBounds(bounds: Bounds): Promise<Zone[]> {
+async function fetchAllZones(): Promise<Zone[]> {
   const { data, error } = await supabase
     .from('zones')
-    .select('*')
-    .gte('geometry', bounds.south)
-    .limit(50);
+    .select('id, name, geometry, owner_id, strength, captured_at, last_defended_at')
+    .limit(200);
 
   if (error) throw error;
 
@@ -80,12 +79,14 @@ export function useViewportCells(bounds: Bounds | null) {
 export function useViewportZones(bounds: Bounds | null) {
   const { setZones } = useTerritoryStore();
 
+  // Zones are large static geographic areas — fetch all of them once per session.
+  // Using a PostGIS bounding box filter here would require a dedicated RPC.
   const zoneQuery = useQuery({
-    queryKey: ['zones', bounds],
-    queryFn: () => fetchZonesInBounds(bounds!),
+    queryKey: ['zones'],
+    queryFn: fetchAllZones,
     enabled: bounds !== null,
-    staleTime: 60_000,
-    refetchInterval: 120_000,
+    staleTime: 5 * 60_000,
+    refetchInterval: 10 * 60_000,
   });
 
   useEffect(() => {

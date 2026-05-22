@@ -4,10 +4,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import { initAuth } from '@/features/auth/authService';
 import { useAuthStore } from '@/features/auth/useAuthStore';
 import { registerForPushNotifications } from '@/lib/notifications';
 import { colors } from '@/lib/theme';
+
+SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,6 +25,10 @@ export default function RootLayout() {
     initAuth();
     registerForPushNotifications();
   }, []);
+
+  useEffect(() => {
+    if (!isLoading) SplashScreen.hideAsync();
+  }, [isLoading]);
 
   if (isLoading) return null;
 
