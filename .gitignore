@@ -9,3 +9,4 @@ ios/
 android/
 .DS_Store
 Thumbs.db
+.claude
