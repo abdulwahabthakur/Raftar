@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TerritoryMap } from '@/components/map/TerritoryMap';
 import { RunHUD } from '@/components/run/RunHUD';
