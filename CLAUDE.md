@@ -85,11 +85,39 @@ npx expo run:ios        # or run:android
 npx expo start --dev-client
 ```
 
+## Git Workflow
+
+| Branch | Purpose | Rules |
+|---|---|---|
+| `master` | Production | PR required, CI must pass, 1 approval |
+| `develop` | Integration | PR required, CI must pass |
+| `fix/*` | Bug fixes | Branch from `develop`, PR back to `develop` |
+| `feature/*` | Features | Branch from `develop`, PR back to `develop` |
+
+**Never commit directly to `master`.** All changes go `feature/fix branch → develop → master`.
+
+## Active Run — Cell Loading
+
+During a run, `active.tsx` maintains a rolling viewport window:
+- Cells refetch every ~250m of movement (`REFETCH_THRESHOLD_DEG = 0.0022`)
+- Load radius is ~500m around the runner (`CELL_RADIUS_DEG = 0.0045`)
+- Uses `useViewportCells(runBounds)` + `useViewportZones(runBounds)` where `runBounds` is derived from `lastPosition`
+
+## Known Bugs / Not Yet Fixed
+
+- `zonesCaptured` counter never increments (no zone capture detection logic)
+- No GPS spoofing protection (no SafetyNet/DeviceCheck)
+- No automated ban threshold on suspicion score
+- Presence channel not sharded by zone (will bottleneck at 500+ concurrent runners)
+- Streak uses UTC — runners near local midnight may see wrong streak date
+- App icon and splash image are placeholder assets
+
 ## Setup Checklist (first time)
 
 1. Create Supabase project (AWS ca-central-1)
 2. `supabase link --project-ref <ref>` then `supabase db push` (runs all 18 migrations)
 3. `supabase functions deploy` for all 5 functions
-4. Fill `.env` with the three vars above
+4. Fill `apps/mobile/.env` with the three vars above
 5. `cd scripts && npx ts-node import-osm-blocks.ts <gta_launch_zone_id>` to seed cells
 6. `cd apps/mobile && npm install && npx expo run:ios`
+7. Add GitHub Secrets (see `.github/branch-protection.md`) to enable CI/CD

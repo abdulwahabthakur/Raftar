@@ -76,6 +76,38 @@ All application code is written. The app has **not yet been run against a live b
 
 ## Change Log
 
+### 2026-08-11 — Active Run + CI/CD Session
+
+**`app/run/active.tsx` — cells now load continuously during a run**
+Root cause: the active run screen rendered `<TerritoryMap followUser />` without passing `onBoundsChange`, so `useViewportCells` was never called during a run. Cells loaded before the run started were the only ones available — running into new areas captured nothing.
+
+Fix: added a rolling viewport window using `lastPosition` from the GPS store. Every time the runner moves ~250m from the last fetch center, a new 500m-radius bounding box is computed and passed to `useViewportCells` + `useViewportZones`. TanStack Query deduplicates fetches so only genuinely new viewport areas trigger an RPC call.
+
+Constants:
+- `REFETCH_THRESHOLD_DEG = 0.0022` (~250m) — minimum movement before re-fetching
+- `CELL_RADIUS_DEG = 0.0045` (~500m) — radius of the cell load window around the runner
+
+**CI/CD — GitHub Actions pipelines added**
+
+Three workflows in `.github/workflows/`:
+- `ci.yml` — runs on every PR to `main`/`develop`: TypeScript check, ESLint, migration ordering validation
+- `deploy-backend.yml` — runs on push to `master` when backend files change: `supabase db push` + all 5 Edge Function deploys + healthcheck
+- `eas-build.yml` — runs on push to `master` when mobile files change: EAS build for Android + iOS (preview profile); also supports manual `workflow_dispatch` trigger
+
+Also added `.github/PULL_REQUEST_TEMPLATE.md` and `.github/CODEOWNERS` (migrations/Edge Functions require review from `@abdulwahabthakur`).
+
+**Branch structure**
+
+| Branch | Purpose |
+|---|---|
+| `master` | Production. Protected: PR required, CI must pass, 1 approval |
+| `develop` | Integration. All feature branches merge here first |
+| `fix/*` | Bug fixes (e.g. `fix/active-run-viewport`) |
+| `feature/*` | New features |
+| `chore/*` | Maintenance, config, docs |
+
+See `.github/branch-protection.md` for exact GitHub settings to apply and the secrets that must be added.
+
 ### 2026-08-08 — Bug Fix Session
 Six bugs fixed across the app:
 
