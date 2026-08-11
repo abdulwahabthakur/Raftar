@@ -1,0 +1,11 @@
+# CODEOWNERS — required reviewers by area
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Backend migrations need careful review — one bad migration can corrupt data
+backend/supabase/migrations/    @abdulwahabthakur
+
+# Edge Functions
+backend/supabase/functions/     @abdulwahabthakur
+
+# CI/CD workflows
+.github/workflows/              @abdulwahabthakur
