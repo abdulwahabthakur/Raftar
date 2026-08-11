@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TerritoryMap } from '@/components/map/TerritoryMap';
 import { RunHUD } from '@/components/run/RunHUD';
@@ -9,6 +9,7 @@ import { useRunTracker } from '@/features/run/useRunTracker';
 import { useRunStore } from '@/features/run/useRunStore';
 import { useTerritoryStore } from '@/features/territory/useTerritoryStore';
 import { useAuthStore } from '@/features/auth/useAuthStore';
+import { useViewportCells, useViewportZones } from '@/features/territory/useViewportCells';
 import {
   findCellAtPoint,
   onEnterCell,
@@ -21,6 +22,13 @@ import {
 import { colors } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+type Bounds = { north: number; south: number; east: number; west: number };
+
+// Refresh cells when runner moves ~250m from the last fetch center (~0.0022 degrees)
+const REFETCH_THRESHOLD_DEG = 0.0022;
+// Load cells in a ~500m radius around the runner
+const CELL_RADIUS_DEG = 0.0045;
+
 export default function ActiveRunScreen() {
   const activeRun = useRunStore((s) => s.activeRun);
   const lastPosition = useRunStore((s) => s.lastPosition);
@@ -31,11 +39,36 @@ export default function ActiveRunScreen() {
   const prevCapturedRef = useRef(0);
   const currentCellRef = useRef<string | null>(null);
 
+  // Rolling viewport: re-fetch cells every ~250m of movement
+  const lastFetchCenter = useRef<{ lat: number; lng: number } | null>(null);
+  const [runBounds, setRunBounds] = useState<Bounds | null>(null);
+
+  useViewportCells(runBounds);
+  useViewportZones(runBounds);
   useRunTracker(activeRun?.isActive ?? false);
 
+  // Update bounds when GPS moves far enough from the last fetch center
+  useEffect(() => {
+    if (!lastPosition) return;
+    const { lat, lng } = lastPosition;
+    const center = lastFetchCenter.current;
+
+    if (center) {
+      const dist = Math.sqrt((lat - center.lat) ** 2 + (lng - center.lng) ** 2);
+      if (dist < REFETCH_THRESHOLD_DEG) return;
+    }
+
+    lastFetchCenter.current = { lat, lng };
+    setRunBounds({
+      north: lat + CELL_RADIUS_DEG,
+      south: lat - CELL_RADIUS_DEG,
+      east: lng + CELL_RADIUS_DEG,
+      west: lng - CELL_RADIUS_DEG,
+    });
+  }, [lastPosition]);
+
   // Start presence broadcast when run is active.
-  // Callbacks use getState() so they always read the latest store values,
-  // not the stale closure values from when the effect first ran.
+  // Use getState() inside callbacks so they always read current values, not stale closure.
   useEffect(() => {
     if (!activeRun) return;
     startPresenceBroadcast(
@@ -50,19 +83,17 @@ export default function ActiveRunScreen() {
     return () => stopPresenceBroadcast();
   }, [activeRun?.id]);
 
-  // Detect cell entry/exit from GPS position changes
+  // Detect cell entry/exit on every GPS position change
   useEffect(() => {
     if (!lastPosition || !activeRun) return;
 
     const cellAtPoint = findCellAtPoint(lastPosition.lat, lastPosition.lng, cells);
 
     if (cellAtPoint?.id !== currentCellRef.current) {
-      // Exited previous cell
       if (currentCellRef.current) {
         const prevCell = cells.find((c) => c.id === currentCellRef.current);
         if (prevCell) onExitCell(prevCell);
       }
-      // Entered new cell
       if (cellAtPoint) {
         onEnterCell(cellAtPoint, userId, activeRun.id);
       }
@@ -70,12 +101,14 @@ export default function ActiveRunScreen() {
     }
   }, [lastPosition]);
 
-  // Show capture flash on new capture
+  // Trigger capture flash whenever a new cell is captured
   useEffect(() => {
     const captured = activeRun?.cellsCaptured ?? 0;
     if (captured > prevCapturedRef.current) {
       prevCapturedRef.current = captured;
       setCaptureFlashVisible(true);
+      // Reset after 100ms so the next capture can trigger it again.
+      // CaptureFlash self-manages its 1.2s animation independently.
       setTimeout(() => setCaptureFlashVisible(false), 100);
     }
   }, [activeRun?.cellsCaptured]);

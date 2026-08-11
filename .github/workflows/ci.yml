@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [develop]
+
+jobs:
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - name: Install mobile deps
+        run: cd apps/mobile && npm ci
+
+      - name: TypeScript check
+        run: cd apps/mobile && npm run typecheck
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - name: Install mobile deps
+        run: cd apps/mobile && npm ci
+
+      - name: ESLint
+        run: cd apps/mobile && npm run lint
+
+  validate-migrations:
+    name: Validate Migrations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check migration file ordering
+        run: |
+          # Ensure migration files are sequentially numbered with no gaps
+          files=$(ls backend/supabase/migrations/*.sql | sort)
+          prev=0
+          for f in $files; do
+            num=$(basename "$f" | sed 's/_.*$//' | sed 's/^0*//')
+            num=${num:-0}
+            expected=$((prev + 1))
+            if [ "$num" -ne "$expected" ]; then
+              echo "Migration gap detected: expected $expected, got $num ($f)"
+              exit 1
+            fi
+            prev=$num
+          done
+          echo "All $prev migrations are sequentially ordered."
