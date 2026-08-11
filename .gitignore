@@ -9,3 +9,9 @@ ios/
 android/
 .DS_Store
 Thumbs.db
+
+# Obsidian workspace state (not content)
+appmap/.obsidian/workspace.json
+appmap/.obsidian/workspace-mobile.json
+appmap/.obsidian/graph.json
+appmap/.obsidian/cache
