@@ -36,7 +36,9 @@ export default function ActiveRunScreen() {
   const userId = useAuthStore((s) => s.user?.id ?? '');
 
   const [captureFlashVisible, setCaptureFlashVisible] = useState(false);
+  const [zoneFlashVisible, setZoneFlashVisible] = useState(false);
   const prevCapturedRef = useRef(0);
+  const prevZonesRef = useRef(0);
   const currentCellRef = useRef<string | null>(null);
 
   // Rolling viewport: re-fetch cells every ~250m of movement
@@ -101,22 +103,31 @@ export default function ActiveRunScreen() {
     }
   }, [lastPosition]);
 
-  // Trigger capture flash whenever a new cell is captured
+  // Trigger cell capture flash
   useEffect(() => {
     const captured = activeRun?.cellsCaptured ?? 0;
     if (captured > prevCapturedRef.current) {
       prevCapturedRef.current = captured;
       setCaptureFlashVisible(true);
-      // Reset after 100ms so the next capture can trigger it again.
-      // CaptureFlash self-manages its 1.2s animation independently.
       setTimeout(() => setCaptureFlashVisible(false), 100);
     }
   }, [activeRun?.cellsCaptured]);
 
+  // Trigger zone capture banner
+  useEffect(() => {
+    const zones = activeRun?.zonesCaptured ?? 0;
+    if (zones > prevZonesRef.current) {
+      prevZonesRef.current = zones;
+      setZoneFlashVisible(true);
+      setTimeout(() => setZoneFlashVisible(false), 100);
+    }
+  }, [activeRun?.zonesCaptured]);
+
   return (
     <View style={styles.root}>
       <TerritoryMap followUser />
-      <CaptureFlash visible={captureFlashVisible} />
+      <CaptureFlash visible={captureFlashVisible} variant="cell" />
+      <CaptureFlash visible={zoneFlashVisible} variant="zone" />
       <HeldCellSkip />
       <SafeAreaView style={styles.hudContainer} edges={['top']}>
         <RunHUD />

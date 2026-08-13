@@ -38,10 +38,9 @@ async function fetchCellsInBounds(bounds: Bounds): Promise<TerritoryCell[]> {
 }
 
 async function fetchAllZones(): Promise<Zone[]> {
-  const { data, error } = await supabase
-    .from('zones')
-    .select('id, name, geometry, owner_id, strength, captured_at, last_defended_at')
-    .limit(200);
+  // Direct select returns PostGIS WKB binary — unusable by MapLibre.
+  // The get_all_zones RPC converts geometry to GeoJSON (migration 019).
+  const { data, error } = await supabase.rpc('get_all_zones');
 
   if (error) throw error;
 

@@ -117,13 +117,30 @@ async function submitCapture(timer: CellTimer): Promise<void> {
 
   const data = await res.json();
   if (data.captured) {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id ?? null;
+
     useRunStore.getState().captureCell();
-    // Optimistically update local cell state
-    const { cells, updateCell } = useTerritoryStore.getState();
+
+    // Optimistically update cell ownership in local store
+    const { cells, updateCell, zones, updateZone } = useTerritoryStore.getState();
     const cell = cells.get(timer.cellId);
     if (cell) {
-      const { data: { session } } = await supabase.auth.getSession();
-      updateCell({ ...cell, ownerId: session?.user?.id ?? null, heldUntil: data.heldUntil });
+      updateCell({ ...cell, ownerId: userId, heldUntil: data.heldUntil });
+    }
+
+    // If a zone changed hands, reflect it locally so the map updates immediately
+    if (data.zoneCaptured && data.zoneId) {
+      useRunStore.getState().captureZone();
+      const zone = zones.get(data.zoneId);
+      if (zone) {
+        updateZone({
+          ...zone,
+          ownerId: userId,
+          capturedAt: new Date().toISOString(),
+          lastDefendedAt: new Date().toISOString(),
+        });
+      }
     }
   }
 }

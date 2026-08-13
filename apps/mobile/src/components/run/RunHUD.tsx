@@ -17,6 +17,30 @@ function formatDistance(meters: number): string {
   return `${Math.round(meters)} m`;
 }
 
+function formatPace(distanceMeters: number, startedAt: number): string {
+  if (distanceMeters < 50) return '--\'--"';
+  const elapsedSecs = (Date.now() - startedAt) / 1000;
+  const secsPerKm = elapsedSecs / (distanceMeters / 1000);
+  const m = Math.floor(secsPerKm / 60);
+  const s = Math.floor(secsPerKm % 60);
+  return `${m}'${String(s).padStart(2, '0')}"`;
+}
+
+interface StatProps {
+  value: string;
+  label: string;
+  large?: boolean;
+}
+
+function Stat({ value, label, large }: StatProps) {
+  return (
+    <View style={styles.stat}>
+      <Text style={large ? styles.valueLg : styles.value}>{value}</Text>
+      <Text style={styles.label}>{label}</Text>
+    </View>
+  );
+}
+
 export function RunHUD() {
   const activeRun = useRunStore((s) => s.activeRun);
   const [, forceUpdate] = React.useReducer((x) => x + 1, 0);
@@ -30,19 +54,31 @@ export function RunHUD() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.stat}>
-        <Text style={styles.value}>{formatDuration(activeRun.startedAt)}</Text>
-        <Text style={styles.label}>TIME</Text>
+      {/* Row 1 — running metrics */}
+      <View style={styles.row}>
+        <Stat value={formatDuration(activeRun.startedAt)} label="TIME" large />
+        <View style={styles.vDivider} />
+        <Stat value={formatDistance(activeRun.distanceMeters)} label="DIST" large />
+        <View style={styles.vDivider} />
+        <Stat value={formatPace(activeRun.distanceMeters, activeRun.startedAt)} label="PACE /km" large />
       </View>
-      <View style={styles.divider} />
-      <View style={styles.stat}>
-        <Text style={styles.value}>{formatDistance(activeRun.distanceMeters)}</Text>
-        <Text style={styles.label}>DISTANCE</Text>
-      </View>
-      <View style={styles.divider} />
-      <View style={styles.stat}>
-        <Text style={styles.value}>{activeRun.cellsCaptured}</Text>
-        <Text style={styles.label}>CELLS</Text>
+
+      {/* Divider */}
+      <View style={styles.hDivider} />
+
+      {/* Row 2 — game metrics */}
+      <View style={styles.row}>
+        <View style={styles.gameMetric}>
+          <Text style={styles.gameIcon}>⬡</Text>
+          <Text style={styles.gameValue}>{activeRun.cellsCaptured}</Text>
+          <Text style={styles.gameLabel}>CELLS</Text>
+        </View>
+        <View style={styles.vDividerThin} />
+        <View style={styles.gameMetric}>
+          <Text style={styles.gameIcon}>◈</Text>
+          <Text style={styles.gameValue}>{activeRun.zonesCaptured}</Text>
+          <Text style={styles.gameLabel}>ZONES</Text>
+        </View>
       </View>
     </View>
   );
@@ -50,35 +86,75 @@ export function RunHUD() {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     backgroundColor: colors.bgCard,
-    borderRadius: 16,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    borderRadius: 18,
     marginHorizontal: spacing.md,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.55,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  row: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 8,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.md,
   },
   stat: {
     alignItems: 'center',
     flex: 1,
   },
-  value: {
+  valueLg: {
     ...typography.h2,
-    fontSize: 20,
+    fontSize: 19,
+  },
+  value: {
+    ...typography.h3,
+    fontSize: 16,
   },
   label: {
     ...typography.label,
-    marginTop: 2,
+    marginTop: 1,
+    fontSize: 10,
   },
-  divider: {
+  vDivider: {
     width: 1,
-    height: 32,
+    height: 36,
+    backgroundColor: colors.border,
+  },
+  hDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginHorizontal: spacing.md,
+  },
+  // Game row
+  gameMetric: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  gameIcon: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  gameValue: {
+    ...typography.h3,
+    fontSize: 16,
+    color: colors.textPrimary,
+  },
+  gameLabel: {
+    ...typography.label,
+    fontSize: 10,
+    color: colors.textSecondary,
+  },
+  vDividerThin: {
+    width: 1,
+    height: 20,
     backgroundColor: colors.border,
   },
 });

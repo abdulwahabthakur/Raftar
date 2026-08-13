@@ -109,5 +109,7 @@ export interface EndRunResponse {
 export interface SubmitCaptureResponse {
   captured: boolean;
   heldUntil?: string;
+  zoneCaptured?: boolean;
+  zoneId?: string | null;
   error?: string;
 }

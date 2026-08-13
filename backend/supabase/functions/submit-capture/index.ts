@@ -86,10 +86,10 @@ serve(async (req: Request) => {
 
   if (!run) return r({ error: 'Run not found or not active' }, 404);
 
-  // Fetch cell
+  // Fetch cell — include zone_id for zone dominance check after capture
   const { data: cell } = await supabase
     .from('territory_cells')
-    .select('id, owner_id, held_until')
+    .select('id, zone_id, owner_id, held_until')
     .eq('id', cellId)
     .single();
 
@@ -172,12 +172,22 @@ serve(async (req: Request) => {
     .update({ owner_id: user.id, owned_at: new Date().toISOString(), held_until: heldUntil })
     .eq('id', cellId);
 
-  // Atomic increments via SECURITY DEFINER functions
-  await Promise.all([
+  // Atomic increments + zone dominance check in parallel
+  const [, , , zoneResult] = await Promise.all([
     supabase.rpc('increment_cell_capture_count', { p_cell_id: cellId }),
     supabase.rpc('increment_run_cells_captured', { p_run_id: runId }),
     supabase.rpc('increment_user_cell_count', { p_user_id: user.id }),
+    // Check if user now dominates the zone (>= 50% of cells) and update ownership
+    cell.zone_id
+      ? supabase.rpc('check_zone_dominance', {
+          p_zone_id: cell.zone_id,
+          p_user_id: user.id,
+          p_run_id: runId,
+        })
+      : Promise.resolve({ data: null }),
   ]);
 
-  return r({ captured: true, heldUntil });
+  const zoneCaptured = (zoneResult?.data as any)?.zone_captured ?? false;
+
+  return r({ captured: true, heldUntil, zoneCaptured, zoneId: cell.zone_id ?? null });
 });
