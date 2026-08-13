@@ -1,6 +1,10 @@
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from './useAuthStore';
 import { UserProfile } from '@/types';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+
+const EAS_PROJECT_ID = 'f3e3a02d-072e-4a6d-9acf-c7a0467f3d4f';
 
 export async function initAuth(): Promise<void> {
   const { setSession, setProfile, setLoading } = useAuthStore.getState();
@@ -26,6 +30,28 @@ export async function initAuth(): Promise<void> {
   });
 }
 
+async function registerPushToken(userId: string): Promise<void> {
+  if (!Device.isDevice) return; // emulators can't receive push notifications
+
+  try {
+    const { status: existing } = await Notifications.getPermissionsAsync();
+    let finalStatus = existing;
+
+    if (existing !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') return;
+
+    const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId: EAS_PROJECT_ID });
+
+    await supabase.from('users').update({ push_token: token }).eq('id', userId);
+  } catch {
+    // Non-fatal — app works without push tokens
+  }
+}
+
 export async function loadProfile(userId: string): Promise<UserProfile | null> {
   const { data, error } = await supabase
     .from('users')
@@ -48,6 +74,8 @@ export async function loadProfile(userId: string): Promise<UserProfile | null> {
   };
 
   useAuthStore.getState().setProfile(profile);
+  // Fire-and-forget — register/refresh push token after every sign-in
+  registerPushToken(userId);
   return profile;
 }
 

@@ -5,6 +5,7 @@ import { z } from 'https://esm.sh/zod@3';
 const EndRunSchema = z.object({
   runId: z.string().uuid(),
   endedAt: z.string().datetime(),
+  localDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   distanceMeters: z.number().min(0),
   route: z.object({
     type: z.literal('LineString'),
@@ -39,7 +40,9 @@ serve(async (req: Request) => {
   const parsed = EndRunSchema.safeParse(body);
   if (!parsed.success) return r({ error: 'Invalid payload', details: parsed.error.format() }, 422);
 
-  const { runId, endedAt, distanceMeters, route } = parsed.data;
+  const { runId, endedAt, localDate, distanceMeters, route } = parsed.data;
+  // Use device-local date for streak so a runner at 11 PM local time isn't credited to the next UTC day
+  const runDate = localDate ?? endedAt.split('T')[0];
 
   const { data: run, error: findErr } = await supabase
     .from('runs')
@@ -75,7 +78,7 @@ serve(async (req: Request) => {
   if (updateErr) return r({ error: `Failed to end run: ${updateErr.message}` }, 500);
 
   await Promise.all([
-    supabase.rpc('update_streak', { p_user_id: user.id, p_run_date: endedAt.split('T')[0] }),
+    supabase.rpc('update_streak', { p_user_id: user.id, p_run_date: runDate }),
     supabase.rpc('increment_user_run_stats', { p_user_id: user.id, p_distance_meters: Math.round(distanceMeters) }),
   ]);
 

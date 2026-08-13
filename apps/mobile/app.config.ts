@@ -41,6 +41,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     [
+      'expo-image-picker',
+      {
+        photosPermission: 'Allow Raftar to access your photos to set your profile picture.',
+      },
+    ],
+    [
       'expo-notifications',
       {
         icon: './assets/notification-icon.png',

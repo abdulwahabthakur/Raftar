@@ -44,12 +44,14 @@ export async function startRun(): Promise<StartRunResponse> {
 export async function endRun(
   runId: string,
   distanceMeters: number,
+  localDate: string,
 ): Promise<EndRunResponse> {
   const coordinates = getRouteCoordinates();
 
   const payload = EndRunSchema.parse({
     runId,
     endedAt: new Date().toISOString(),
+    localDate,
     distanceMeters,
     route: { type: 'LineString', coordinates },
   });

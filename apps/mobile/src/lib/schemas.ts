@@ -15,6 +15,8 @@ export const StartRunSchema = z.object({
 export const EndRunSchema = z.object({
   runId: z.string().uuid(),
   endedAt: z.string().datetime(),
+  // User's local date (YYYY-MM-DD) so streak isn't tied to UTC midnight
+  localDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   distanceMeters: z.number().min(0),
   route: z.object({
     type: z.literal('LineString'),

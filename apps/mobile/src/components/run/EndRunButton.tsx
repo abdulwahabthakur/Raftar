@@ -25,7 +25,9 @@ export function EndRunButton() {
             stopPresenceBroadcast();
             resetRunCells();
             const durationSeconds = Math.round((Date.now() - activeRun.startedAt) / 1000);
-            await endRun(activeRun.id, activeRun.distanceMeters);
+            // en-CA locale gives YYYY-MM-DD in the device's local timezone
+            const localDate = new Date().toLocaleDateString('en-CA');
+            await endRun(activeRun.id, activeRun.distanceMeters, localDate);
             router.replace({
               pathname: '/run/summary',
               params: {

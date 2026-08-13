@@ -20,30 +20,43 @@ export function ZoneLayer({ zones }: Props) {
       properties: {
         ownerId: z.ownerId,
         isOwn: z.ownerId === userId,
-        strength: z.strength,
+        isOwned: z.ownerId !== null,
+        strength: z.strength ?? 0,
       },
     })),
   };
 
   return (
     <MapboxGL.ShapeSource id="zones-source" shape={geojson}>
+      {/* Fill — color by ownership, opacity scales with zone strength (0.12–0.70) */}
       <MapboxGL.FillLayer
         id="zones-fill"
         style={{
           fillColor: [
             'case',
-            ['==', ['get', 'isOwn'], true],
-            colors.zoneOwned,
+            ['==', ['get', 'isOwn'], true],  colors.zoneOwned,
+            ['==', ['get', 'isOwned'], true], 'rgba(255,149,0,0.55)', // enemy zone = amber
             colors.zoneNeutral,
           ],
-          fillOpacity: 0.7,
+          fillOpacity: [
+            '+',
+            0.12,
+            ['*', 0.58, ['/', ['get', 'strength'], 100]],
+          ],
         }}
       />
+      {/* Border — thicker + color-coded as strength grows (1–3.5 px) */}
       <MapboxGL.LineLayer
         id="zones-border"
         style={{
-          lineColor: colors.cellBorder,
-          lineWidth: 1.5,
+          lineColor: [
+            'case',
+            ['==', ['get', 'isOwn'], true],  colors.primary,
+            ['==', ['get', 'isOwned'], true], colors.accent,
+            colors.cellBorder,
+          ],
+          lineWidth: ['+', 1, ['*', 2.5, ['/', ['get', 'strength'], 100]]],
+          lineOpacity: 0.75,
         }}
       />
     </MapboxGL.ShapeSource>
