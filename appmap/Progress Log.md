@@ -35,11 +35,15 @@ All application code is written. The app has **not yet been run against a live b
 - [x] All 7 map layers (CellLayer, ZoneLayer, HeldCellLayer, FogLayer, PulseLayer, RunnerDot, TerritoryMap)
 - [x] Presence system (broadcast + receive other runners)
 - [x] GPS buffer (MMKV-backed ring buffer)
-- [x] Viewport-aware cell/zone loading (spatial RPC)
+- [x] Viewport-aware cell/zone loading (spatial RPC + get_all_zones RPC)
 - [x] Zustand stores (run, territory, auth)
 - [x] Zod validation on all API payloads
 - [x] Dark theme throughout
 - [x] All TypeScript types defined
+- [x] Zone capture — full end-to-end (migration 019, check_zone_dominance RPC, submit-capture wired, client store updated)
+- [x] KYRO-style 2-row RunHUD (TIME/DIST/PACE + CELLS/ZONES)
+- [x] Zone capture banner (full-screen green flash distinct from cell capture pill)
+- [x] Run summary with hero distance + avg pace
 
 ### Documentation
 - [x] README.md (human-readable project overview)
@@ -65,8 +69,7 @@ All application code is written. The app has **not yet been run against a live b
 - [ ] **Multi-device abuse** — device ID tracks hardware but new device bypasses it
 - [ ] **Timezone-aware streaks** — currently uses UTC; runners near midnight in non-UTC timezones may see unexpected streak behavior
 - [ ] **Spatial presence** — all GTA runners share one Realtime channel; at scale, needs sub-zone fan-out
-- [ ] **Zone strength UI** — zones have a `strength` field but it's not visualized in the app yet
-- [ ] **Zone capture confirmation** — `zonesCaptured` counter exists but the trigger for incrementing it on the server needs wiring
+- [ ] **Zone strength UI** — zones have a `strength` field (0–100) but it's not visualized on the map yet; consider opacity or border weight to encode it
 - [ ] **Push notification token collection** — `users.push_token` column exists, collection UI not implemented
 - [ ] **Avatar upload** — `avatar_url` column exists, upload UI not implemented
 - [ ] **Streak decay** — streaks are awarded but never decay (no "lose streak after X days" logic)
@@ -75,6 +78,46 @@ All application code is written. The app has **not yet been run against a live b
 ---
 
 ## Change Log
+
+### 2026-08-13 — Zone Capture + KYRO-Style Run UX
+
+**Zone capture — full end-to-end implementation**
+
+Zone capture was previously entirely unimplemented (the counter never incremented and no server logic existed). This session wired the complete path:
+
+1. **Migration 019** (`019_zones_rpc_and_capture.sql`) — two new SQL functions:
+   - `get_all_zones()` — returns zones with `ST_AsGeoJSON` conversion so MapLibre receives GeoJSON polygons (PostgREST returns raw WKB by default, which crashes the map renderer).
+   - `check_zone_dominance(zone_id, user_id, run_id)` — called after each cell capture. Counts the capturing user's cells vs total cells in the zone. If ≥50% dominance: transfers zone ownership, sets `captured_at`/`last_defended_at`, inserts a `zone_captures` row, and returns `{ zone_captured: true }`. If same owner already: refreshes `strength` and `last_defended_at`. Returns a JSONB result so the Edge Function can relay it to the client.
+
+2. **`submit-capture` Edge Function** — now selects `zone_id` on the cell fetch and runs `check_zone_dominance` in parallel with the three existing atomic increment RPCs (`increment_cell_capture_count`, `increment_run_cells_captured`, `increment_user_cell_count`). Response extended to `{ captured, heldUntil, zoneCaptured, zoneId }`.
+
+3. **`captureService.ts`** — `submitCapture()` now handles the `zoneCaptured` field: calls `useRunStore.getState().captureZone()` (increments the run-local zone counter) and optimistically updates the zone's `ownerId`, `capturedAt`, and `lastDefendedAt` in `useTerritoryStore` so the map recolors immediately without waiting for a poll.
+
+4. **`useViewportCells.ts`** — `fetchAllZones()` now uses `supabase.rpc('get_all_zones')` (migration 019 required). Previously it called direct PostgREST `select('geometry')` which returned WKB binary.
+
+**KYRO-style run UX improvements**
+
+KYRO (the Korean territory-running app) surfaces running performance metrics prominently alongside game metrics. Raftar's run UX now matches that pattern:
+
+- **`RunHUD.tsx`** — redesigned as a 2-row card:
+  - Row 1 (running metrics): TIME / DIST / PACE (avg min/km, shows `--'--"` until 50m moved)
+  - Row 2 (game metrics): ⬡ CELLS / ◈ ZONES
+  - Pace updates every second via the existing `setInterval` force-rerender.
+
+- **`CaptureFlash.tsx`** — extended with a `variant` prop:
+  - `cell` (default): small red pill at top — "CAPTURED" with spring-in/fade-out animation (unchanged behavior)
+  - `zone`: full-screen centered green banner — "ZONE CAPTURED / Territory is yours" with scale + fade animation lasting 1.8s. The success green (`colors.success`) glows via shadow.
+
+- **`active.tsx`** — tracks `zonesCaptured` separately from `cellsCaptured` via `prevZonesRef`; shows `<CaptureFlash variant="zone">` when a zone changes hands.
+
+- **`summary.tsx`** — redesigned post-run screen:
+  - Hero row at top: large distance + avg pace side-by-side (pace calculated from `distance / duration`)
+  - Card below: Duration, Cells Captured, Zones Captured (highlighted green if >0), Held Cells Skipped (only if >0)
+
+**Branches**: committed on `fix/zone-capture`, fast-forward merged to `develop` and `master`, all three pushed.
+
+**Resolved known gaps**:
+- ~~Zone capture confirmation — `zonesCaptured` counter exists but the trigger for incrementing it on the server needs wiring~~ ✅ fully implemented
 
 ### 2026-08-11 — Active Run + CI/CD Session
 
