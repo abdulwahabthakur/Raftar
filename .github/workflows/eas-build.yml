@@ -36,13 +36,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: apps/mobile/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
-      - name: Install mobile deps
-        run: cd apps/mobile && npm ci
+      - name: Install deps
+        run: npm ci
 
       - name: Build
         run: |
