@@ -1,6 +1,6 @@
 -- Individual capturable city-block polygons
 CREATE TABLE territory_cells (
-  id             UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   zone_id        UUID NOT NULL REFERENCES zones(id) ON DELETE CASCADE,
   geometry       GEOMETRY(POLYGON, 4326) NOT NULL,
   owner_id       UUID REFERENCES users(id) ON DELETE SET NULL,

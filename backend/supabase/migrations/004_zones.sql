@@ -1,6 +1,6 @@
 -- Neighbourhood-level zones (cluster of cells)
 CREATE TABLE zones (
-  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   launch_zone_id    UUID NOT NULL REFERENCES launch_zones(id) ON DELETE CASCADE,
   name              TEXT NOT NULL,
   geometry          GEOMETRY(POLYGON, 4326) NOT NULL,

@@ -1,6 +1,6 @@
 -- Materialised leaderboard cache refreshed every 5 minutes by pg_cron
 CREATE TABLE leaderboard_cache (
-  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   board_type  TEXT NOT NULL, -- 'distance' | 'territory' | 'domination'
   period      TEXT NOT NULL, -- 'today' | 'week' | 'alltime'
   rank        INT NOT NULL,

@@ -1,6 +1,6 @@
 -- Append-only capture log
 CREATE TABLE cell_captures (
-  id                 UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   cell_id            UUID NOT NULL REFERENCES territory_cells(id) ON DELETE CASCADE,
   user_id            UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   run_id             UUID NOT NULL REFERENCES runs(id) ON DELETE CASCADE,

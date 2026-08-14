@@ -1,6 +1,6 @@
 -- Append-only anti-cheat suspicion log — COMPLETELY inaccessible to clients
 CREATE TABLE anticheat_log (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   run_id          UUID REFERENCES runs(id) ON DELETE SET NULL,
   event_type      TEXT NOT NULL, -- 'speed_violation', 'dwell_too_short', 'replay_attempt', 'rooted_device'

@@ -1,6 +1,6 @@
 -- Daily run streak tracking
 CREATE TABLE run_streaks (
-  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
   last_run_date DATE NOT NULL,
   current_streak INT NOT NULL DEFAULT 1,
