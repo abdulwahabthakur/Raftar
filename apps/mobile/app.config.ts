@@ -4,6 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Raftar',
   slug: 'raftar',
+  owner: 'abdu1.wahab',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
