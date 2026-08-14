@@ -6,6 +6,7 @@ on:
     paths:
       - 'backend/supabase/migrations/**'
       - 'backend/supabase/functions/**'
+  workflow_dispatch:
 
 jobs:
   deploy:
