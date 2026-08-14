@@ -21,6 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     infoPlist: {
       NSLocationWhenInUseUsageDescription:
         'Raftar uses your location to track runs and capture territory.',
+      ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
