@@ -38,8 +38,9 @@ export function EndRunButton() {
                 zones: activeRun.zonesCaptured,
               },
             });
-          } catch (e) {
+          } catch (e: any) {
             console.error('Failed to end run', e);
+            Alert.alert('Could not save run', e?.message ?? 'Something went wrong. Please try again.');
             setLoading(false);
           }
         },

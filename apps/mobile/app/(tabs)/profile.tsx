@@ -43,8 +43,10 @@ export default function ProfileScreen() {
     if (result.canceled) return;
 
     const asset = result.assets[0];
-    const ext = asset.uri.split('.').pop()?.toLowerCase() ?? 'jpg';
-    const contentType = ext === 'png' ? 'image/png' : 'image/jpeg';
+    // Android returns content:// URIs with no extension — use mimeType instead
+    const mimeType = asset.mimeType ?? 'image/jpeg';
+    const ext = mimeType === 'image/png' ? 'png' : 'jpg';
+    const contentType = mimeType;
     const filePath = `${p.id}/avatar.${ext}`;
 
     setUploadingAvatar(true);
